@@ -18,15 +18,10 @@ use \WebLoader\Compiler;
 
 class CssMinFilter
 {
-    /**
-     * Minify target code
-     * @param string $code
-     * @param Compiler $compiler
-     * @return string
-     */
-    public function __invoke($code, Compiler $compiler)
+    public function __invoke(string $code, Compiler $compiler, string $path) : string
     {
-        $minifier = new \MatthiasMullie\Minify\CSS($code);
+        $minifier = new CssMinifier($path);
+        $minifier->setMaxImportSize(0.1);
         return $minifier->minify();
     }
 }
