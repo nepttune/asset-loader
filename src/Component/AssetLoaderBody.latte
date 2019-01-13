@@ -1,0 +1,187 @@
+{*
+ * This file is part of Nepttune (https://www.peldax.com)
+ *
+ * Copyright (c) 2018 Václav Pelíšek (info@peldax.com)
+ *
+ * This software consists of voluntary contributions made by many individuals
+ * and is licensed under the MIT license. For more information, see
+ * <https://www.peldax.com>.
+*}
+
+<link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$control->getIntegrity($style)}" href="{$style}" />
+<script n:nonce type="text/javascript" crossorigin="anonymous" integrity="{$control->getIntegrity($script)}" src="{$script}"></script>
+<script n:nonce>$(document).ready(function(){ navigator.serviceWorker.register({plink :Tool:worker}, { scope: '/' });});</script>
+
+{if $recaptcha}
+    <script n:nonce type="text/javascript" async defer src="https://www.google.com/recaptcha/api.js"></script>
+{/if}
+
+{if $maps}
+    <script n:nonce type="text/javascript" async defer src="https://maps.googleapis.com/maps/api/js?key={$mapsKey}&callback=initGoogleMaps"></script>
+{/if}
+
+{if $subscribe}
+    <script n:nonce>
+        const pushButton = document.querySelector('#push-subscription-button');
+        const applicationServerKey = {$workerKey};
+        let isPushEnabled = false;
+
+        function changePushButtonState (state) {
+            switch (state) {
+                case 'enabled':
+                    pushButton.disabled = false;
+                    pushButton.textContent = "Disable Push notifications";
+                    pushButton.setAttribute("value", "Disable Push notifications");
+                    isPushEnabled = true;
+                    break;
+                case 'disabled':
+                    pushButton.disabled = false;
+                    pushButton.textContent = "Enable Push notifications";
+                    pushButton.setAttribute("value", "Enable Push notifications");
+                    isPushEnabled = false;
+                    break;
+                case 'computing':
+                    pushButton.disabled = true;
+                    pushButton.textContent = "Loading...";
+                    pushButton.setAttribute("value", "Loading");
+                    break;
+                case 'incompatible':
+                    pushButton.disabled = true;
+                    pushButton.textContent = "Push notifications are not compatible with this browser";
+                    pushButton.setAttribute("value", "Push notifications are not compatible with this browser");
+                    break;
+                default:
+                    console.error('Unhandled push button state', state);
+                    break;
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function push_subscribe() {
+            changePushButtonState('computing');
+
+            navigator.serviceWorker.ready.then(serviceWorkerRegistration => serviceWorkerRegistration.pushManager.subscribe(
+                {
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
+                })).then(subscription =>
+            {
+                return push_sendSubscriptionToServer(subscription, 'POST');
+            }).then(subscription => subscription && changePushButtonState('enabled')).catch(e => {
+                if (Notification.permission === 'denied') {
+                    changePushButtonState('incompatible');
+                } else {
+                    changePushButtonState('disabled');
+                }
+            });
+        }
+
+        function push_updateSubscription()
+        {
+            navigator.serviceWorker.ready.then(serviceWorkerRegistration => serviceWorkerRegistration.pushManager.getSubscription()).then(subscription =>
+            {
+                changePushButtonState('disabled');
+
+                if (!subscription) {
+                    return;
+                }
+
+                return push_sendSubscriptionToServer(subscription, 'PUT');
+            }).then(subscription => subscription && changePushButtonState('enabled')).catch(e =>
+            {
+                console.error('Error when updating the subscription', e);
+            });
+        }
+
+        function push_unsubscribe() {
+            changePushButtonState('computing');
+
+            navigator.serviceWorker.ready.then(serviceWorkerRegistration => serviceWorkerRegistration.pushManager.getSubscription()).then(subscription =>
+            {
+                if (!subscription) {
+                    changePushButtonState('disabled');
+                    return;
+                }
+                return push_sendSubscriptionToServer(subscription, 'DELETE');
+            }).then(subscription => subscription.unsubscribe()).then(() => changePushButtonState('disabled')).catch(e =>
+            {
+                changePushButtonState('disabled');
+            });
+        }
+
+        function push_sendSubscriptionToServer(subscription, method)
+        {
+            const key = subscription.getKey('p256dh');
+            const token = subscription.getKey('auth');
+            const contentEncoding = (PushManager.supportedContentEncodings || ['aesgcm'])[0];
+
+            return fetch({plink :Tool:subscribe}, {
+                method,
+                body: JSON.stringify({
+                    endpoint: subscription.endpoint,
+                    publicKey: key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : null,
+                    authToken: token ? btoa(String.fromCharCode.apply(null, new Uint8Array(token))) : null,
+                    contentEncoding,
+                }),
+            }).then(() => subscription);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!pushButton) {
+                return;
+            }
+
+            pushButton.addEventListener('click', function() {
+                if (isPushEnabled) {
+                    push_unsubscribe();
+                } else {
+                    push_subscribe();
+                }
+            });
+
+            if (!('serviceWorker' in navigator)) {
+                changePushButtonState('incompatible');
+                return;
+            }
+
+            if (!('PushManager' in window)) {
+                changePushButtonState('incompatible');
+                return;
+            }
+
+            if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
+                changePushButtonState('incompatible');
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                changePushButtonState('incompatible');
+                return;
+            }
+
+            navigator.serviceWorker.register({plink :Tool:worker}, { scope: '/' }).then(() => {
+                push_updateSubscription();
+            }, e => {
+                changePushButtonState('incompatible');
+            });
+        });
+    </script>
+{/if}
+
+{if $photoswipe}
+    {include $presenter::getPhotoswipe()}
+{/if}
