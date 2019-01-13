@@ -8,4 +8,7 @@
  * <https://www.peldax.com>.
 *}
 
-<link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$control->getIntegrity($style)}" href="{$style}" />
+{foreach $styles as $style}
+    <link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$control->getIntegrity($style)}" href="{$style}" />
+{/foreach}
+
