@@ -18,15 +18,9 @@ use \WebLoader\Compiler;
 
 class JsMinFilter
 {
-    /**
-     * Minify target code
-     * @param string $code
-     * @param Compiler $compiler
-     * @return string
-     */
-    public function __invoke($code, Compiler $compiler)
+    public function __invoke(string $code, Compiler $compiler, string $path) : string
     {
-        $minifier = new \MatthiasMullie\Minify\JS($code);
+        $minifier = new \Nepttune\AssetMinifier\JsMinifier($path);
         return $minifier->minify();
     }
 }
