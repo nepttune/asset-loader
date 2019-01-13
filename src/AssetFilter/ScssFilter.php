@@ -10,6 +10,8 @@
  * <https://www.peldax.com>.
  */
 
+declare(strict_types = 1);
+
 namespace Nepttune\AssetFilter;
 
 use \WebLoader\Compiler;
