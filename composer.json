@@ -14,7 +14,7 @@
     "nepttune/base-requirements": "^4.0",
     "janmarek/webloader": "dev-master",
     "matthiasmullie/minify": "^1.3",
-    "leafo/scssphp": "^0.7.7",
+    "leafo/scssphp": "^0.7.7"
   },
   "autoload": {
     "psr-4": {
