@@ -305,7 +305,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         $files = new \WebLoader\FileCollection(\getcwd() . '/../');
         $files->addFiles($styles);
         
-        $compiler = \Nepttune\Compiler\AssetCompiler::createCssCompiler($files, \getcwd() . '/webloader/');
+        $compiler = \Nepttune\AssetCompiler\Compiler::createCssCompiler($files, \getcwd() . '/webloader/');
         $compiler->setCheckLastModified(false);
         $compiler->setJoinFiles(true);
         $compiler->addFilter(new \Nepttune\AssetFilter\CssMinFilter());
@@ -321,7 +321,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         $compiler = \Nepttune\AssetCompiler\Compiler::createCssCompiler($files, \getcwd() . '/webloader/');
         $compiler->setCheckLastModified(false);
         $compiler->setJoinFiles(true);
-        $compiler->addFilter(new \Nepttune\AssetFilter\ScssFilter());
+        $compiler->addFilter(new \WebLoader\Filter\ScssFilter());
         $compiler->addFilter(new \Nepttune\AssetFilter\CssMinFilter());
 
         return '/webloader/' . $compiler->generate()[0]->file;
