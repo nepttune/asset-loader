@@ -12,9 +12,9 @@
 
 declare(strict_types = 1);
 
-namespace Nepttune\Compiler;
+namespace Nepttune\AssetCompiler;
 
-class AssetCompiler extends \WebLoader\Compiler
+class Compiler extends \WebLoader\Compiler
 {
     public function getContent(array $files = null)
     {
