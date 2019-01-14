@@ -20,7 +20,7 @@ class CssMinFilter
 {
     public function __invoke(string $code, Compiler $compiler, string $path) : string
     {
-        $minifier = new CssMinifier($path);
+        $minifier = new \Nepttune\AssetMinifier\CssMinifier($path);
         $minifier->setMaxImportSize(0.1);
         return $minifier->minify();
     }
