@@ -158,7 +158,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
 
         if ($this->module) {
             $moduleStyle = '/scss/module/' . $this->module . '.scss';
-            if (\file_exists(\getcwd() . '/node_modules/nepttune' . $moduleStyle)) {
+            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleStyle)) {
                 $styles[] = '/node_modules/nepttune' . $moduleStyle;
             }
             if (\file_exists(\getcwd() . $moduleStyle)) {
@@ -167,7 +167,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         }
 
         $presenStyle = '/scss/presenter/' . $this->presen . '.scss';
-        if (\file_exists(\getcwd() . '/node_modules/nepttune' . $presenStyle)) {
+        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $presenStyle)) {
             $styles[] = '/node_modules/nepttune' . $presenStyle;
         }
         if (\file_exists(\getcwd() . $presenStyle)) {
@@ -175,7 +175,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         }
 
         $actionStyle = '/scss/action/' . $this->presen . '/' . $this->action . '.scss';
-        if (\file_exists(\getcwd() . '/node_modules/nepttune' . $actionStyle)) {
+        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $actionStyle)) {
             $styles[] = '/node_modules/nepttune' . $actionStyle;
         }
         if (\file_exists(\getcwd() . $actionStyle)) {
@@ -222,14 +222,14 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
             $componentStyle = '/scss/component/' . \ucfirst($name) . '.scss';
             $componentScript = '/js/component/' . \ucfirst($name) . '.js';
 
-            if (\file_exists(\getcwd() . '/node_modules/nepttune' . $componentStyle)) {
+            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $componentStyle)) {
                 $styles[] = '/node_modules/nepttune' . $componentStyle;
             }
             if (\file_exists(\getcwd() . $componentStyle)) {
                 $styles[] = '/www' . $componentStyle;
             }
 
-            if (\file_exists(\getcwd() . '/node_modules/nepttune' . $componentScript)) {
+            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $componentScript)) {
                 $scripts[] = '/node_modules/nepttune' . $componentScript;
             }
             if (\file_exists(\getcwd() . $componentScript)) {
@@ -267,7 +267,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
 
         if ($this->module) {
             $moduleScript = '/js/module/' . $this->module . '.js';
-            if (\file_exists(\getcwd() . '/node_modules/nepttune' . $moduleScript)) {
+            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleScript)) {
                 $scripts[] = '/node_modules/nepttune' . $moduleScript;
             }
             if (\file_exists(\getcwd() . $moduleScript)) {
@@ -276,7 +276,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         }
 
         $presenScript = '/js/presenter/' . $this->presen . '.js';
-        if (\file_exists(\getcwd() . '/node_modules/nepttune' . $presenScript)) {
+        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $presenScript)) {
             $scripts[] = '/node_modules/nepttune' . $presenScript;
         }
         if (\file_exists(\getcwd() . $presenScript)) {
@@ -284,7 +284,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         }
 
         $actionScript = '/js/action/' . $this->presen . '/' . $this->action . '.js';
-        if (\file_exists(\getcwd() . '/node_modules/nepttune' . $actionScript)) {
+        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $actionScript)) {
             $scripts[] = '/node_modules/nepttune' . $actionScript;
         }
         if (\file_exists(\getcwd() . $actionScript)) {
