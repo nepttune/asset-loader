@@ -18,7 +18,7 @@
   ],
   "require": {
     "nepttune/base-requirements": "^4.0",
-    "gappa/webloader": "dev-master",
+    "janmarek/webloader": "dev-master",
     "matthiasmullie/minify": "^1.3",
     "leafo/scssphp": "^0.7.7"
   },
