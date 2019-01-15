@@ -9,11 +9,11 @@
 *}
 
 {foreach $styles as $style}
-    <link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$control->getIntegrity($style)}" href="{$style}" />
+    <link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$control->getIntegrity($style)}" href="{$style}?v={$version}" />
 {/foreach}
 
 {foreach $scripts as $script}
-    <script n:nonce type="text/javascript" crossorigin="anonymous" integrity="{$control->getIntegrity($script)}" src="{$script}"></script>
+    <script n:nonce type="text/javascript" crossorigin="anonymous" integrity="{$control->getIntegrity($script)}" src="{$script}?v={$version}"></script>
 {/foreach}
 
 <script n:nonce>$(document).ready(function(){ navigator.serviceWorker.register({plink :Tool:worker}, { scope: '/' });});</script>
