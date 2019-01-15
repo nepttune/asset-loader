@@ -310,7 +310,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         $compiler->setJoinFiles(true);
         $compiler->addFilter(new \Nepttune\AssetFilter\CssMinFilter());
 
-        return '/webloader/' . $compiler->generate()[0]->file;
+        return '/webloader/' . $compiler->generate()[0]->getFile();
     }
 
     private static function compileScssStyles(array $styles) : string
@@ -324,7 +324,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         $compiler->addFilter(new \WebLoader\Filter\ScssFilter());
         $compiler->addFilter(new \Nepttune\AssetFilter\CssMinFilter());
 
-        return '/webloader/' . $compiler->generate()[0]->file;
+        return '/webloader/' . $compiler->generate()[0]->getFile();
     }
 
     private static function compileScripts(array $scripts) : string
@@ -337,6 +337,6 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         $compiler->setJoinFiles(true);
         $compiler->addFilter(new \Nepttune\AssetFilter\JsMinFilter());
 
-        return '/webloader/' . $compiler->generate()[0]->file;
+        return '/webloader/' . $compiler->generate()[0]->getFile();
     }
 }
