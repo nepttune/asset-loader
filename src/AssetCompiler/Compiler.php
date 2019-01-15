@@ -16,7 +16,7 @@ namespace Nepttune\AssetCompiler;
 
 class Compiler extends \WebLoader\Compiler
 {
-    public function getContent(array $files = null)
+    public function getContent(?array $files = null) : string
     {
         if ($files === null) {
             $files = $this->getFileCollection()->getFiles();
