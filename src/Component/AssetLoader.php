@@ -17,6 +17,9 @@ namespace Nepttune\Component;
 final class AssetLoader extends \Nette\Application\UI\Control implements IStyleLists, IScriptLists
 {
     /** @var string */
+    protected $version;
+
+    /** @var string */
     protected $vapidPublicKey;
 
     /** @var string */
@@ -49,10 +52,11 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
     /** @var bool */
     protected $photoswipe;
 
-    public function __construct(string $vapidPublicKey, string $googleApiKey, \Nette\Caching\IStorage $storage)
+    public function __construct(string $version, string $vapidPublicKey, string $googleApiKey, \Nette\Caching\IStorage $storage)
     {
         parent::__construct();
 
+        $this->version = \implode(\explode('.', $version));
         $this->vapidPublicKey = $vapidPublicKey;
         $this->googleApiKey = $googleApiKey;
         $this->cache = new \Nette\Caching\Cache($storage, 'Nepttune.AssetLoader');
@@ -86,7 +90,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
         }
 
         $this->template->styles = $styles;
-
+        $this->template->version = $this->version;
         $this->template->setFile(__DIR__ . '/AssetLoaderHead.latte');
         $this->template->render();
     }
@@ -121,7 +125,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
 
         $this->template->styles = $styles;
         $this->template->scripts = $scripts;
-
+        $this->template->version = $this->version;
         $this->template->setFile(__DIR__ . '/AssetLoaderBody.latte');
         $this->template->render();
 
