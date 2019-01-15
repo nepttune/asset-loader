@@ -9,6 +9,6 @@
 *}
 
 {foreach $styles as $style}
-    <link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$control->getIntegrity($style)}" href="{$style}" />
+    <link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$control->getIntegrity($style)}" href="{$style}?v={$version}" />
 {/foreach}
 
