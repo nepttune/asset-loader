@@ -10,9 +10,15 @@
       "homepage": "https://www.peldax.com"
     }
   ],
+  "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/gappa/webloader"
+        }
+  ],
   "require": {
     "nepttune/base-requirements": "^4.0",
-    "janmarek/webloader": "dev-master",
+    "gappa/webloader": "dev-master",
     "matthiasmullie/minify": "^1.3",
     "leafo/scssphp": "^0.7.7"
   },
