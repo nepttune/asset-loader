@@ -86,7 +86,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
             $styles[] = self::compileStyles($assets['lib']['css']);
         }
         if ($assets['asset']['css']) {
-            $styles[] = self::compileStyles($assets['asset']['css']);
+            $styles[] = self::compileScssStyles($assets['asset']['css']);
         }
 
         $this->template->styles = $styles;
@@ -113,7 +113,7 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
             $styles[] = self::compileStyles($assets['lib']['css']);
         }
         if ($assets['asset']['css']) {
-            $styles[] = self::compileStyles($assets['asset']['css']);
+            $styles[] = self::compileScssStyles($assets['asset']['css']);
         }
 
         if ($assets['lib']['js']) {
