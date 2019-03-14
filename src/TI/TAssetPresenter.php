@@ -29,7 +29,10 @@ trait TAssetPresenter
     public $assetsMaps = false;
 
     /** @var array */
-    public $additionalAssets = [];
+    public $additionalStyle = [];
+    
+    /** @var array */
+    public $additionalScript = [];
     
     /** @var string */
     public $module;
