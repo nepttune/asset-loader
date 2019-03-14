@@ -8,12 +8,12 @@
  * <https://www.peldax.com>.
 *}
 
-{foreach $styles as $style}
-    <link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$control->getIntegrity($style)}" href="{$style}?v={$version}" />
+{foreach $styles as $style => $integrity}
+    <link rel="stylesheet" type="text/css" crossorigin="anonymous" integrity="{$integrity}" href="{$style}?v={$version}" />
 {/foreach}
 
-{foreach $scripts as $script}
-    <script n:nonce type="text/javascript" crossorigin="anonymous" integrity="{$control->getIntegrity($script)}" src="{$script}?v={$version}"></script>
+{foreach $scripts as $script => $integrity}
+    <script n:nonce type="text/javascript" crossorigin="anonymous" integrity="{$integrity}" src="{$script}?v={$version}"></script>
 {/foreach}
 
 <script n:nonce>$(document).ready(function(){ navigator.serviceWorker.register({plink :Tool:worker}, { scope: '/' });});</script>
