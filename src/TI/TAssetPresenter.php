@@ -75,6 +75,6 @@ trait TAssetPresenter
 
     public static function getPhotoswipe() : string
     {
-        return __DIR__ . '/../templates/photoswipe.latte';
+        return __DIR__ . '/../../../nepttune/src/templates/photoswipe.latte';
     }
 }
