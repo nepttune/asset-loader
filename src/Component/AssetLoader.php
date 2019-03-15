@@ -14,8 +14,43 @@ declare(strict_types = 1);
 
 namespace Nepttune\Component;
 
-final class AssetLoader extends \Nette\Application\UI\Control implements IStyleLists, IScriptLists
+final class AssetLoader extends \Nette\Application\UI\Control
 {
+    private static $defaultConfig = [
+        'global' => [
+            'styleHead' => [],
+            'styleBody' => [],
+            'script' => [],
+        ],
+        'module' => [
+            'www' => [
+                'styleHead' => [],
+                'styleBody' => [],
+                'script' => [],
+            ],
+            'admin' => [
+                'styleHead' => [],
+                'styleBody' => [],
+                'script' => [],
+            ],
+        ],
+        'form' => [
+            'styleBody' => [],
+            'script' => [],
+        ],
+        'list' => [
+            'styleBody' => [],
+            'script' => [],
+        ],
+        'stat' => [
+            'styleBody' => [],
+            'script' => [],
+        ],
+    ];
+
+    /** @var array */
+    protected $config;
+
     /** @var string */
     protected $version;
 
@@ -28,34 +63,19 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
     /** @var \Nette\Caching\Cache */
     protected $cache;
 
-    /** @var bool */
-    protected $admin;
+    /** @var \Nepttune\TI\TAssetPresenter */
+    protected $presenter;
 
-    /** @var  string */
-    protected $module;
-
-    /** @var  string */
-    protected $presen;
-
-    /** @var  string */
-    protected $action;
-
-    /** @var bool */
-    protected $maps;
-
-    /** @var bool */
-    protected $recaptcha;
-
-    /** @var bool */
-    protected $subscribe;
-
-    /** @var bool */
-    protected $photoswipe;
-
-    public function __construct(string $version, string $vapidPublicKey, string $googleApiKey, \Nette\Caching\IStorage $storage)
+    public function __construct(
+        array $config,
+        string $version,
+        string $vapidPublicKey,
+        string $googleApiKey,
+        \Nette\Caching\IStorage $storage)
     {
         parent::__construct();
 
+        $this->config = \array_merge_recursive(self::$defaultConfig, $config);
         $this->version = \implode(\explode('.', $version));
         $this->vapidPublicKey = $vapidPublicKey;
         $this->googleApiKey = $googleApiKey;
@@ -64,32 +84,18 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
 
     protected function attached($presenter) : void
     {
-        $this->admin =
-            \class_exists('\Nepttune\Presenter\BaseAuthPresenter') &&
-            $presenter instanceof \Nepttune\Presenter\BaseAuthPresenter;
-        $this->module = $presenter->getModule();
-        $this->presen = $presenter->getName();
-        $this->action = $presenter->getAction();
+        if (!$presenter instanceof \Nepttune\TI\IAssetPresenter) {
+            throw new \Nette\InvalidStateException('Presenter doesnt implement IAssetPresenter interface');
+        }
 
-        $this->maps = $presenter->assetsMaps;
-        $this->recaptcha = $presenter->assetsRecaptcha;
-        $this->subscribe = $presenter->assetsSubscribe;
-        $this->photoswipe = $presenter->assetsPhotoswipe;
+        $this->presenter = $presenter;
     }
 
     public function renderHead() : void
     {
         $assets = $this->getAssetsHead();
-        $styles = [];
 
-        if ($assets['lib']['css']) {
-            $styles[] = self::compileStyles($assets['lib']['css']);
-        }
-        if ($assets['asset']['css']) {
-            $styles[] = self::compileScssStyles($assets['asset']['css']);
-        }
-
-        $this->template->styles = $styles;
+        $this->template->styles = $assets['style'];
         $this->template->version = $this->version;
         $this->template->setFile(__DIR__ . '/AssetLoaderHead.latte');
         $this->template->render();
@@ -97,43 +103,20 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
 
     public function renderBody() : void
     {
-        $this->template->maps = $this->maps && (bool) \strlen($this->googleApiKey);
-        $this->template->recaptcha = $this->recaptcha;
-        $this->template->subscribe = $this->subscribe && (bool) \strlen($this->vapidPublicKey);
-        $this->template->photoswipe = $this->photoswipe;
+        $assets = $this->getAssetsBody();
 
+        $this->template->maps = $this->presenter->assetsMaps && (bool) \strlen($this->googleApiKey);
+        $this->template->recaptcha = $this->presenter->assetsRecaptcha;
+        $this->template->subscribe = $this->presenter->assetsSubscribe && (bool) \strlen($this->vapidPublicKey);
+        $this->template->photoswipe = $this->presenter->assetsPhotoswipe;
         $this->template->mapsKey = $this->googleApiKey;
         $this->template->workerKey = $this->vapidPublicKey;
-
-        $assets = $this->getAssetsBody();
-        $styles = [];
-        $scripts = [];
-
-        if ($assets['lib']['css']) {
-            $styles[] = self::compileStyles($assets['lib']['css']);
-        }
-        if ($assets['asset']['css']) {
-            $styles[] = self::compileScssStyles($assets['asset']['css']);
-        }
-
-        if ($assets['lib']['js']) {
-            $scripts[] = self::compileScripts($assets['lib']['js']);
-        }
-        if ($assets['asset']['js']) {
-            $scripts[] = self::compileScripts($assets['asset']['js']);
-        }
-
-        $this->template->styles = $styles;
-        $this->template->scripts = $scripts;
+        $this->template->styles = $assets['style'];
+        $this->template->scripts = $assets['script'];
         $this->template->version = $this->version;
         $this->template->setFile(__DIR__ . '/AssetLoaderBody.latte');
         $this->template->render();
 
-    }
-
-    public function getIntegrity(string $path) : string
-    {
-        return $this->cache->call('Nepttune\Component\AssetLoader::generateChecksum', $path);
     }
 
     public static function generateChecksum(string $path) : string
@@ -143,52 +126,44 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
 
     public function getAssetsHead() : array
     {
-        $cacheName = "{$this->module}_{$this->presen}_{$this->action}_head";
+        $cacheName = "{$this->presenter->getModule()}_{$this->presenter->getName()}_{$this->presenter->getAction()}_head";
         $assets = $this->cache->load($cacheName);
 
         if ($assets) {
             return $assets;
         }
-        
-        $styles = [];
-        $libStyles = static::STYLE_HEAD;
 
-        if ($this->admin) {
-            $styles = \array_merge($styles, static::STYLE_HEAD_ADMIN);
-        }
-        else {
-            $styles = \array_merge($styles, static::STYLE_HEAD_FRONT);
-        }
-
-        if ($this->module) {
-            $moduleStyle = '/scss/module/' . $this->module . '.scss';
+        $module = $this->config['module'][\lcfirst($this->presenter->getModule())]['styleHead'];
+        if ($this->presenter->getModule()) {
+            $moduleStyle = '/scss/module/' . $this->presenter->getModule() . '.scss';
             if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleStyle)) {
-                $styles[] = '/node_modules/nepttune' . $moduleStyle;
+                $module[] = '/node_modules/nepttune' . $moduleStyle;
             }
             if (\file_exists(\getcwd() . $moduleStyle)) {
-                $styles[] = '/www' . $moduleStyle;
+                $module[] = '/www' . $moduleStyle;
             }
         }
 
-        $presenStyle = '/scss/presenter/' . $this->presen . '.scss';
+        $presenter = [];
+        $presenStyle = '/scss/presenter/' . $this->presenter->getName() . '.scss';
         if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $presenStyle)) {
-            $styles[] = '/node_modules/nepttune' . $presenStyle;
+            $presenter[] = '/node_modules/nepttune' . $presenStyle;
         }
         if (\file_exists(\getcwd() . $presenStyle)) {
-            $styles[] = '/www' . $presenStyle;
+            $presenter[] = '/www' . $presenStyle;
         }
 
-        $actionStyle = '/scss/action/' . $this->presen . '/' . $this->action . '.scss';
+        $action = [];
+        $actionStyle = '/scss/action/' . $this->presenter->getName() . '/' . $this->presenter->getAction() . '.scss';
         if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $actionStyle)) {
-            $styles[] = '/node_modules/nepttune' . $actionStyle;
+            $action[] = '/node_modules/nepttune' . $actionStyle;
         }
         if (\file_exists(\getcwd() . $actionStyle)) {
-            $styles[] = '/www' . $actionStyle;
+            $action[] = '/www' . $actionStyle;
         }
 
         $assets = [
-            'lib' => ['css' => $libStyles],
-            'asset' => ['css' => $styles],
+            'style' => self::compileStyles([$this->config['global']['styleHead'], $module, $presenter, $action]),
         ];
 
         $this->cache->save($cacheName, $assets);
@@ -197,27 +172,44 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
 
     public function getAssetsBody() : array
     {
-        $cacheName = "{$this->module}_{$this->presen}_{$this->action}_body";
+        $cacheName = "{$this->presenter->getModule()}_{$this->presenter->getName()}_{$this->presenter->getAction()}_body";
         $assets = $this->cache->load($cacheName);
 
         if ($assets) {
             return $assets;
         }
 
-        $styles = [];
-        $libStyles = static::STYLE_BODY;
-        $scripts = [];
-        $libScripts = static::SCRIPT_BODY;
-
-        if ($this->admin) {
-            $libStyles = \array_merge($libStyles, static::STYLE_BODY_ADMIN);
-            $libScripts = \array_merge($libScripts, static::SCRIPT_BODY_ADMIN);
-        }
-        else {
-            $libStyles = \array_merge($libStyles, static::STYLE_BODY_FRONT);
-            $libScripts = \array_merge($libScripts, static::SCRIPT_BODY_FRONT);
+        $module = $this->config['module'][\lcfirst($this->presenter->getModule())]['script'];
+        if ($this->presenter->getModule()) {
+            $moduleStyle = '/js/module/' . $this->presenter->getModule() . '.js';
+            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleStyle)) {
+                $module[] = '/node_modules/nepttune' . $moduleStyle;
+            }
+            if (\file_exists(\getcwd() . $moduleStyle)) {
+                $module[] = '/www' . $moduleStyle;
+            }
         }
 
+        $presenter = [];
+        $presenScript = '/js/presenter/' . $this->presenter->getName() . '.js';
+        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $presenScript)) {
+            $presenter[] = '/node_modules/nepttune' . $presenScript;
+        }
+        if (\file_exists(\getcwd() . $presenScript)) {
+            $presenter[] = '/www' . $presenScript;
+        }
+
+        $action = [];
+        $actionScript = '/js/action/' . $this->presenter->getName() . '/' . $this->presenter->getAction() . '.js';
+        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $actionScript)) {
+            $action[] = '/node_modules/nepttune' . $actionScript;
+        }
+        if (\file_exists(\getcwd() . $actionScript)) {
+            $action[] = '/www' . $actionScript;
+        }
+
+        $componentStyles = [];
+        $componentScripts = [];
         $hasForm = false;
         $hasList = false;
         $hasStat = false;
@@ -226,121 +218,120 @@ final class AssetLoader extends \Nette\Application\UI\Control implements IStyleL
             $componentStyle = '/scss/component/' . \ucfirst($name) . '.scss';
             $componentScript = '/js/component/' . \ucfirst($name) . '.js';
 
+            $styles = [];
             if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $componentStyle)) {
                 $styles[] = '/node_modules/nepttune' . $componentStyle;
             }
             if (\file_exists(\getcwd() . $componentStyle)) {
                 $styles[] = '/www' . $componentStyle;
             }
+            if (!empty($styles)) {
+                $componentStyles[] = $styles;
+            }
 
+            $scripts = [];
             if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $componentScript)) {
                 $scripts[] = '/node_modules/nepttune' . $componentScript;
             }
             if (\file_exists(\getcwd() . $componentScript)) {
                 $scripts[] = '/www' . $componentScript;
             }
+            if (!empty($scripts)) {
+                $componentScripts[] = $scripts;
+            }
 
-            if (!$hasForm && strpos($name, 'Form') !== false) {
+            if (!$hasForm && \strpos($name, 'Form') !== false) {
                 $hasForm = true;
             }
 
-            if (!$hasList && strpos($name, 'List') !== false) {
+            if (!$hasList && \strpos($name, 'List') !== false) {
                 $hasForm = true;
                 $hasList = true;
             }
 
-            if (!$hasStat && strpos($name, 'Stat') !== false) {
+            if (!$hasStat && \strpos($name, 'Stat') !== false) {
                 $hasStat = true;
             }
         }
 
-        if ($hasForm) {
-            $libStyles = \array_merge($libStyles, static::STYLE_FORM);
-            $libScripts = \array_merge($libScripts, static::SCRIPT_FORM);
-        }
-
-        if ($hasList) {
-            $libStyles = \array_merge($libStyles, static::STYLE_LIST);
-            $libScripts = \array_merge($libScripts, static::SCRIPT_LIST);
-        }
-
-        if ($hasStat) {
-            $libStyles = \array_merge($libStyles, static::STYLE_STAT);
-            $libScripts = \array_merge($libScripts, static::SCRIPT_STAT);
-        }
-
-        if ($this->module) {
-            $moduleScript = '/js/module/' . $this->module . '.js';
-            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleScript)) {
-                $scripts[] = '/node_modules/nepttune' . $moduleScript;
-            }
-            if (\file_exists(\getcwd() . $moduleScript)) {
-                $scripts[] = '/www' . $moduleScript;
-            }
-        }
-
-        $presenScript = '/js/presenter/' . $this->presen . '.js';
-        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $presenScript)) {
-            $scripts[] = '/node_modules/nepttune' . $presenScript;
-        }
-        if (\file_exists(\getcwd() . $presenScript)) {
-            $scripts[] = '/www' . $presenScript;
-        }
-
-        $actionScript = '/js/action/' . $this->presen . '/' . $this->action . '.js';
-        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $actionScript)) {
-            $scripts[] = '/node_modules/nepttune' . $actionScript;
-        }
-        if (\file_exists(\getcwd() . $actionScript)) {
-            $scripts[] = '/www' . $actionScript;
-        }
-
         $assets = [
-            'lib' => ['css' => $libStyles, 'js' => $libScripts],
-            'asset' => ['css' => $styles, 'js' => $scripts],
+            'style' => self::compileStyles(
+                \array_merge(
+                    [
+                        $this->config['global']['styleBody'],
+                        $hasForm ? $this->config['form']['styleBody'] : [],
+                        $hasList ? $this->config['list']['styleBody'] : [],
+                        $hasStat ? $this->config['stat']['styleBody'] : [],
+                        $this->presenter->additionalStyles,
+                    ],
+                    $componentStyles)
+            ),
+            'script' => self::compileScripts(
+                \array_merge(
+                    [
+                        $this->config['global']['script'],
+                        $hasForm ? $this->config['form']['script'] : [],
+                        $hasList ? $this->config['list']['script'] : [],
+                        $hasStat ? $this->config['stat']['script'] : [],
+                        $this->presenter->additionalScripts,
+                        $module,
+                        $presenter,
+                        $action,
+                    ],
+                    $componentScripts)
+            ),
         ];
 
         $this->cache->save($cacheName, $assets);
         return $assets;
     }
 
-    private static function compileStyles(array $styles) : string
+    private static function compileStyles(array $assets) : array
     {
-        $files = new \WebLoader\FileCollection(\getcwd() . '/../');
-        $files->addFiles($styles);
-        
-        $compiler = \Nepttune\AssetCompiler\Compiler::createCssCompiler($files, \getcwd() . '/webloader/');
-        $compiler->setCheckLastModified(false);
-        $compiler->setJoinFiles(true);
-        $compiler->addFilter(new \Nepttune\AssetFilter\CssMinFilter());
+        $return = [];
 
-        return '/webloader/' . $compiler->generate()[0]->getFile();
+        foreach ($assets as $styles) {
+            if (empty($styles)) {
+                continue;
+            }
+
+            $files = new \WebLoader\FileCollection(\getcwd() . '/../');
+            $files->addFiles($styles);
+
+            $compiler = \Nepttune\AssetCompiler\Compiler::createCssCompiler($files, \getcwd() . '/webloader/');
+            $compiler->setCheckLastModified(false);
+            $compiler->setJoinFiles(true);
+            $compiler->addFilter(new \WebLoader\Filter\ScssFilter());
+            $compiler->addFilter(new \Nepttune\AssetFilter\CssMinFilter());
+
+            $path = '/webloader/' . $compiler->generate()[0]->getFile();
+            $return[$path] = self::generateChecksum($path);
+        }
+
+        return $return;
     }
 
-    private static function compileScssStyles(array $styles) : string
+    private static function compileScripts(array $assets) : array
     {
-        $files = new \WebLoader\FileCollection(\getcwd() . '/../');
-        $files->addFiles($styles);
-        
-        $compiler = \Nepttune\AssetCompiler\Compiler::createCssCompiler($files, \getcwd() . '/webloader/');
-        $compiler->setCheckLastModified(false);
-        $compiler->setJoinFiles(true);
-        $compiler->addFilter(new \WebLoader\Filter\ScssFilter());
-        $compiler->addFilter(new \Nepttune\AssetFilter\CssMinFilter());
+        $return = [];
 
-        return '/webloader/' . $compiler->generate()[0]->getFile();
-    }
+        foreach ($assets as $scripts) {
+            if (empty($scripts)) {
+                continue;
+            }
 
-    private static function compileScripts(array $scripts) : string
-    {
-        $files = new \WebLoader\FileCollection(\getcwd() . '/../');
-        $files->addFiles($scripts);
-        
-        $compiler = \Nepttune\AssetCompiler\Compiler::createJsCompiler($files, \getcwd() . '/webloader/');
-        $compiler->setCheckLastModified(false);
-        $compiler->setJoinFiles(true);
-        $compiler->addFilter(new \Nepttune\AssetFilter\JsMinFilter());
+            $files = new \WebLoader\FileCollection(\getcwd() . '/../');
+            $files->addFiles($scripts);
 
-        return '/webloader/' . $compiler->generate()[0]->getFile();
+            $compiler = \Nepttune\AssetCompiler\Compiler::createJsCompiler($files, \getcwd() . '/webloader/');
+            $compiler->setCheckLastModified(false);
+            $compiler->setJoinFiles(true);
+            $compiler->addFilter(new \Nepttune\AssetFilter\JsMinFilter());
+
+            $path = '/webloader/' . $compiler->generate()[0]->getFile();
+            $return[$path] = self::generateChecksum($path);
+        }
+
+        return $return;
     }
 }
