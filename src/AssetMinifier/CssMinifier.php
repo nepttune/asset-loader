@@ -72,4 +72,11 @@ class CssMinifier extends \MatthiasMullie\Minify\CSS
 
         return parent::importFiles($source, $content);
     }
+    
+    public function addWithPath(string $code, string $path) : self
+    {
+        $this->data[$path] = str_replace(array("\r\n", "\r"), "\n", $code);
+
+        return $this;
+    }
 }
