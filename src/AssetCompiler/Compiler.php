@@ -25,9 +25,11 @@ class Compiler extends \WebLoader\Compiler
         $content = '';
         foreach ($files as $file) {
             // apply filters
+            $temp = $this->loadFile($file);
             foreach ($this->getFilters() as $filter) {
-                $content .= PHP_EOL . \call_user_func($filter, $this->loadFile($file), $this, $file);
+                $temp = \call_user_func($filter, $temp, $this, $file);
             }
+            $content .= $temp . PHP_EOL;
         }
 
         return $content;
