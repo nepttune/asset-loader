@@ -17,8 +17,9 @@
         }
   ],
   "require": {
-    "nepttune/base-component": "^4.0",
+    "nette/application": "^3.0",
     "nette/di": "^3.0",
+    "nette/caching": "^3.0",
     "janmarek/webloader": "dev-master",
     "matthiasmullie/minify": "^1.3",
     "leafo/scssphp": "^0.7.7"
