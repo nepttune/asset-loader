@@ -73,22 +73,19 @@ final class AssetLoader extends \Nette\Application\UI\Control
         string $googleApiKey,
         \Nette\Caching\IStorage $storage)
     {
-        parent::__construct();
+        $this->monitor(\Nette\Application\UI\Presenter::class, function (\Nette\ComponentModel\IComponent $presenter) {
+            if (!$presenter instanceof \Nepttune\TI\IAssetPresenter) {
+                throw new \Nette\InvalidStateException('Presenter doesnt implement IAssetPresenter interface');
+            }
+
+            $this->presenter = $presenter;
+        });
 
         $this->config = \array_merge_recursive(self::$defaultConfig, $config);
         $this->version = \implode(\explode('.', $version));
         $this->vapidPublicKey = $vapidPublicKey;
         $this->googleApiKey = $googleApiKey;
         $this->cache = new \Nette\Caching\Cache($storage, 'Nepttune.AssetLoader');
-    }
-
-    protected function attached($presenter) : void
-    {
-        if (!$presenter instanceof \Nepttune\TI\IAssetPresenter) {
-            throw new \Nette\InvalidStateException('Presenter doesnt implement IAssetPresenter interface');
-        }
-
-        $this->presenter = $presenter;
     }
 
     public function renderHead() : void
