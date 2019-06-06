@@ -130,17 +130,15 @@ final class AssetLoader extends \Nette\Application\UI\Control
             return $assets;
         }
 
-        if (\array_key_exists(\lcfirst($this->presenter->getModule()), $this->config['module'])) {
-	        $module = $this->config['module'][\lcfirst($this->presenter->getModule())]['styleHead'];
-	        if ($this->presenter->getModule()) {
-		        $moduleStyle = '/scss/module/' . $this->presenter->getModule() . '.scss';
-		        if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleStyle)) {
-			        $module[] = '/node_modules/nepttune' . $moduleStyle;
-		        }
-		        if (\file_exists(\getcwd() . $moduleStyle)) {
-			        $module[] = '/www' . $moduleStyle;
-		        }
-	        }
+        $module = $this->config['module'][\lcfirst($this->presenter->getModule())]['styleHead'] ?? [];
+        if ($this->presenter->getModule()) {
+            $moduleStyle = '/scss/module/' . $this->presenter->getModule() . '.scss';
+            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleStyle)) {
+                $module[] = '/node_modules/nepttune' . $moduleStyle;
+            }
+            if (\file_exists(\getcwd() . $moduleStyle)) {
+                $module[] = '/www' . $moduleStyle;
+            }
         }
 
         $presenter = [];
