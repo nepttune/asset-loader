@@ -176,17 +176,15 @@ final class AssetLoader extends \Nette\Application\UI\Control
             return $assets;
         }
 
-        if (\array_key_exists(\lcfirst($this->presenter->getModule()), $this->config['module'])) {
-        	$module = $this->config['module'][\lcfirst($this->presenter->getModule())]['script'];
-	        if ($this->presenter->getModule()) {
-	            $moduleStyle = '/js/module/' . $this->presenter->getModule() . '.js';
-	            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleStyle)) {
-	                $module[] = '/node_modules/nepttune' . $moduleStyle;
-	            }
-	            if (\file_exists(\getcwd() . $moduleStyle)) {
-	                $module[] = '/www' . $moduleStyle;
-	            }
-	        }
+    	$module = $this->config['module'][\lcfirst($this->presenter->getModule())]['script'] ?? [];
+        if ($this->presenter->getModule()) {
+            $moduleStyle = '/js/module/' . $this->presenter->getModule() . '.js';
+            if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleStyle)) {
+                $module[] = '/node_modules/nepttune' . $moduleStyle;
+            }
+            if (\file_exists(\getcwd() . $moduleStyle)) {
+                $module[] = '/www' . $moduleStyle;
+            }
         }
 
         $presenter = [];
@@ -213,7 +211,10 @@ final class AssetLoader extends \Nette\Application\UI\Control
         $hasList = false;
         $hasStat = false;
 
-        foreach ($this->getPresenter()->getComponents() as $name => $component) {
+        /** @var \Nette\ComponentModel\IComponent $component */
+        foreach ($this->getPresenter()->getComponents() as $component) {
+            $name = \str_replace('\\', '_', (new \ReflectionClass($component))->getName());
+            
             $componentStyle = '/scss/component/' . \ucfirst($name) . '.scss';
             $componentScript = '/js/component/' . \ucfirst($name) . '.js';
 
