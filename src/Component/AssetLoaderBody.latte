@@ -16,7 +16,7 @@
     <script n:nonce type="text/javascript" crossorigin="anonymous" integrity="{$integrity}" src="{$script}?v={$version}"></script>
 {/foreach}
 
-<script n:nonce>$(document).ready(function(){ navigator.serviceWorker.register({plink :Tool:worker}, { scope: '/' });});</script>
+<script n:nonce>window.onload = function() {navigator.serviceWorker.register({plink :Tool:worker}, { scope: '/' });};</script>
 
 {if $recaptcha}
     <script n:nonce type="text/javascript" async defer src="https://www.google.com/recaptcha/api.js"></script>
