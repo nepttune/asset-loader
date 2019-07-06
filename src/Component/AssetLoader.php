@@ -126,7 +126,7 @@ final class AssetLoader extends \Nette\Application\UI\Control
         $cacheName = "{$this->presenter->getModule()}_{$this->presenter->getName()}_{$this->presenter->getAction()}_head";
         $assets = $this->cache->load($cacheName);
 
-        if ($assets) {
+        if ($assets && \Tracy\Debugger::$productionMode === true) {
             return $assets;
         }
 
@@ -172,7 +172,7 @@ final class AssetLoader extends \Nette\Application\UI\Control
         $cacheName = "{$this->presenter->getModule()}_{$this->presenter->getName()}_{$this->presenter->getAction()}_body";
         $assets = $this->cache->load($cacheName);
 
-        if ($assets) {
+        if ($assets && \Tracy\Debugger::$productionMode === true) {
             return $assets;
         }
 
@@ -212,7 +212,7 @@ final class AssetLoader extends \Nette\Application\UI\Control
         $hasStat = false;
 
         /** @var \Nette\ComponentModel\IComponent $component */
-        foreach ($this->getPresenter()->getComponents() as $component) {
+        foreach ($this->getPresenter()->getComponents(true) as $component) {
             $name = \str_replace('\\', '_', (new \ReflectionClass($component))->getName());
             
             $componentStyle = '/scss/component/' . \ucfirst($name) . '.scss';
