@@ -176,7 +176,7 @@ final class AssetLoader extends \Nette\Application\UI\Control
             return $assets;
         }
 
-    	$module = $this->config['module'][\lcfirst($this->presenter->getModule())]['script'] ?? [];
+        $module = $this->config['module'][\lcfirst($this->presenter->getModule())]['script'] ?? [];
         if ($this->presenter->getModule()) {
             $moduleStyle = '/js/module/' . $this->presenter->getModule() . '.js';
             if (\file_exists(\getcwd() . '/../node_modules/nepttune' . $moduleStyle)) {
@@ -214,7 +214,7 @@ final class AssetLoader extends \Nette\Application\UI\Control
         /** @var \Nette\ComponentModel\IComponent $component */
         foreach ($this->getPresenter()->getComponents(true) as $component) {
             $name = \str_replace('\\', '_', (new \ReflectionClass($component))->getName());
-            
+
             $componentStyle = '/scss/component/' . \ucfirst($name) . '.scss';
             $componentScript = '/js/component/' . \ucfirst($name) . '.js';
 
@@ -298,11 +298,11 @@ final class AssetLoader extends \Nette\Application\UI\Control
             $files = new \WebLoader\FileCollection(\getcwd() . '/../');
             $files->addFiles($styles);
 
-            $compiler = \Nepttune\AssetCompiler\Compiler::createCssCompiler($files, \getcwd() . '/webloader/');
+            $compiler = \WebLoader\Compiler::createCssCompiler($files, \getcwd() . '/webloader/');
             $compiler->setCheckLastModified(false);
             $compiler->setJoinFiles(true);
             $compiler->addFilter(new \WebLoader\Filter\ScssFilter());
-            $compiler->addFilter(new \Nepttune\AssetFilter\CssMinFilter());
+            $compiler->addFilter(new \WebLoader\Filter\CssMinFilter());
 
             $path = '/webloader/' . $compiler->generate()[0]->getFile();
             $return[$path] = self::generateChecksum($path);
@@ -323,10 +323,10 @@ final class AssetLoader extends \Nette\Application\UI\Control
             $files = new \WebLoader\FileCollection(\getcwd() . '/../');
             $files->addFiles($scripts);
 
-            $compiler = \Nepttune\AssetCompiler\Compiler::createJsCompiler($files, \getcwd() . '/webloader/');
+            $compiler = \WebLoader\Compiler::createJsCompiler($files, \getcwd() . '/webloader/');
             $compiler->setCheckLastModified(false);
             $compiler->setJoinFiles(true);
-            $compiler->addFilter(new \Nepttune\AssetFilter\JsMinFilter());
+            $compiler->addFilter(new \WebLoader\Filter\JsMinFilter());
 
             $path = '/webloader/' . $compiler->generate()[0]->getFile();
             $return[$path] = self::generateChecksum($path);
